@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [pokemones, setPokemon] = useState([]);
+
+  useEffect(() => {
+    const getPokemon = async () => {
+      const response = await fetch(
+        "https://pokeapi.co/api/v2/pokemon?limit=100&offset=0"
+      );
+      const data = await response.json();
+      const { results } = data;
+      const newPokemones = results.map(async (pokemon) => {
+        const response = await fetch(pokemon.url);
+        const poke = await response.json();
+        return {
+          name: poke.name,
+          id: poke.id,
+          image: poke.sprites.other.dream_world.front_default,
+        };
+      });
+      setPokemon(await Promise.all(newPokemones));
+    };
+    getPokemon();
+  }, []);
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <h1>Pokedex</h1>
+      {
+        <ul>
+          {pokemones.map((pokemon, index) => (
+            <li key={index}>
+              <img src={pokemon.image} alt={pokemon.name} />
+              <p>{pokemon.name}</p>
+              <p>{pokemon.id}</p>
+            </li>
+          ))}
+        </ul>
+      }
     </>
-  )
+  );
 }
 
-export default App
+export default App;
